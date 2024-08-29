@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教員のための生成AI研修</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #slideContainer {
+            width: 100%;
+            height: 100%;
+        }
+        .slide {
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+        .slide.active {
+            display: block;
+        }
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+        button {
+            font-size: 18px;
+            margin: 0 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .link {
+            fill: blue;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div id="slideContainer">
+        <!-- ここに各スライドのSVGコンテンツを挿入 -->
+    </div>
+    <div id="controls">
+        <button id="prevSlide">前へ</button>
+        <button id="nextSlide">次へ</button>
+    </div>
+
+    <script>
+        const slides = [
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 80px; font-weight: 700; fill: #1A73E8; }
+      .subtitle { font-size: 48px; font-weight: 400; fill: #5F6368; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(960, 540)">
+    <text x="0" y="-60" text-anchor="middle" class="title">教員のための生成AI研修</text>
+    <text x="0" y="60" text-anchor="middle" class="subtitle">働き方改革を支援する新しいツール</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 80px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 60px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" class="background"/>
+  <g transform="translate(160, 540)">
+    <text x="0" y="-60" text-anchor="start" class="title">ゴール</text>
+    <text x="0" y="60" text-anchor="start" class="content">「校務で生成AIを使いたい」と思えるきっかけを掴む</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 80px; font-weight: 700; fill: #1A73E8; }
+      .item { font-size: 48px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" class="background"/>
+  <g transform="translate(160, 300)">
+    <text x="0" y="-180" text-anchor="start" class="title">本時の流れ</text>
+    <text x="0" y="0" text-anchor="start" class="item">0. イントロダクション</text>
+    <text x="0" y="80" text-anchor="start" class="item">1. 生成AIの基礎・基本</text>
+    <text x="0" y="160" text-anchor="start" class="item">2. 生成AIの使い方</text>
+    <text x="0" y="240" text-anchor="start" class="item">3. 校務での生成AI活用</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 40px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">0.1 なぜ働き方改革なのか</text>
+    <text x="0" y="150" class="content">• 長時間労働の改善必要性</text>
+    <text x="0" y="250" class="content">• 教育の質の向上</text>
+    <text x="0" y="350" class="content">• ワークライフバランスの実現</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 40px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">0.1.1 多忙化</text>
+    <text x="0" y="150" class="content">• 授業準備や校務に追われる日々</text>
+    <text x="0" y="250" class="content">• 部活動指導の負担</text>
+    <text x="0" y="350" class="content">• 保護者対応の増加</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 40px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">0.1.2 志願者減少</text>
+    <text x="0" y="150" class="content">• 教員採用試験の志願者数減少</text>
+    <text x="0" y="250" class="content">• 労働環境改善の必要性</text>
+    <text x="0" y="350" class="content">• 効率的な働き方改革の重要性</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 40px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">0.2 なぜ生成AIなのか</text>
+    <text x="0" y="150" class="content">• 業務効率化の可能性</text>
+    <text x="0" y="250" class="content">• 個別最適化された学習支援</text>
+    <text x="0" y="350" class="content">• データ分析と意思決定の補助</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 40px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+      .link { fill: blue; text-decoration: underline; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">0.2.1 生成AIの社会的普及</text>
+    <text x="0" y="150" class="content">• 様々な産業での活用拡大</text>
+    <text x="0" y="250" class="content">• 教育分野での期待の高まり</text>
+    <text x="0" y="350" class="content">• 技術の進化と可能性の拡大</text>
+    <text x="0" y="450" class="content">
+      <tspan x="0" dy="1.2em">動画:</tspan>
+      <a xlink:href="https://openai.com/index/sora/" target="_blank">
+        <tspan x="80" dy="0" class="link">https://openai.com/index/sora/</tspan>
+      </a>
+    </text>
+    <text x="0" y="550" class="content">
+      <tspan x="0" dy="1.2em">音声:</tspan>
+      <a xlink:href="https://youtu.be/XOXMwsq7ACs?si=2I6iORPnKK7nkypD" target="_blank">
+        <tspan x="80" dy="0" class="link">https://youtu.be/XOXMwsq7ACs?si=2I6iORPnKK7nkypD</tspan>
+      </a>
+    </text>
+    <text x="0" y="650" class="content">
+      <tspan x="0" dy="1.2em">実例:</tspan>
+      <a xlink:href="https://youtu.be/1vNAfN62Gdc?si=_mJjMqMPtro-M24e" target="_blank">
+        <tspan x="80" dy="0" class="link">https://youtu.be/1vNAfN62Gdc?si=_mJjMqMPtro-M24e</tspan>
+      </a>
+    </text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 40px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+      .link { fill: blue; text-decoration: underline; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">0.2.2 生成AIパイロット高での実践</text>
+    <text x="0" y="150" class="content">• 実際の教育現場での活用事例</text>
+    <text x="0" y="250" class="content">• 教材作成の効率化</text>
+    <text x="0" y="350" class="content">• 個別指導の質の向上</text>
+    <text x="0" y="450" class="content">
+      <a xlink:href="https://sites.google.com/view/hasama-jhs-generative-ai/case-study" target="_blank">
+        <tspan x="0" dy="1.2em" class="link">https://sites.google.com/view/hasama-jhs-generative-ai/case-study</tspan>
+      </a>
+    </text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .subtitle { font-size: 48px; font-weight: 700; fill: #5F6368; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">1.1 従来のAIと生成AIの違い</text>
+    <text x="0" y="150" class="subtitle">従来のAI</text>
+    <text x="40" y="220" class="content">• データ分析と予測が主な機能</text>
+    <text x="40" y="290" class="content">• 定義されたタスクの実行に特化</text>
+    <text x="0" y="390" class="subtitle">生成AI</text>
+    <text x="40" y="460" class="content">• 新しいコンテンツを生成可能</text>
+    <text x="40" y="530" class="content">• クリエイティブな活動に対応</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">1.1.1 従来のAI（人工知能）</text>
+    <text x="0" y="150" class="content">• コンテンツ生成: 人間が提供したデータの分析・予測</text>
+    <text x="0" y="220" class="content">• 学習方法: 大量データを用いた機械学習</text>
+    <text x="0" y="290" class="content">• 強み: 明確に定義されたタスクの実行</text>
+    <text x="0" y="360" class="content">• 弱み: 新しいコンテンツ生成ができない</text>
+    <text x="0" y="430" class="content">• 例: 自動運転、音声アシスタント、顔認証システム</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">1.1.2 生成AI</text>
+    <text x="0" y="150" class="content">• コンテンツ生成: 新しいコンテンツを生成できる</text>
+    <text x="0" y="220" class="content">• 学習方法: ディープラーニングを用いた生成モデル</text>
+    <text x="0" y="290" class="content">• 強み: クリエイティブな活動やアイディアの創出</text>
+    <text x="0" y="360" class="content">• 弱み: 主観性、感覚、独創性、長期記憶が苦手</text>
+    <text x="0" y="430" class="content">• 例: 文章生成、画像生成、音楽作曲</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .subtitle { font-size: 48px; font-weight: 700; fill: #5F6368; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">1.2 LLMと検索の違い</text>
+    <text x="0" y="150" class="subtitle">LLM（大規模言語モデル）</text>
+    <text x="40" y="220" class="content">• 学習データに基づく自然言語生成</text>
+    <text x="40" y="290" class="content">• 柔軟な回答生成が可能</text>
+    <text x="0" y="390" class="subtitle">検索エンジン</text>
+    <text x="40" y="460" class="content">• インデックス化された情報の検索</text>
+    <text x="40" y="530" class="content">• 最新の情報へのアクセスが可能</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">1.2.1 検索エンジン</text>
+    <text x="0" y="150" class="content">• 原理: インデックス化されたウェブページから情報検索</text>
+    <text x="0" y="220" class="content">• 出力形式: 関連するウェブページを提供</text>
+    <text x="0" y="290" class="content">• 情報の最新性: リアルタイムで最新情報を取得可能</text>
+    <text x="0" y="360" class="content">• 精度と信頼性: 信頼性の高いソースから情報提供</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">1.2.2 LLM（大規模言語モデル）</text>
+    <text x="0" y="150" class="content">• 原理: 大量のテキストデータを学習し、パターンを理解</text>
+    <text x="0" y="220" class="content">• 出力形式: 自然言語で柔軟な回答を生成</text>
+    <text x="0" y="290" class="content">• 情報の最新性: 学習データ時点に依存</text>
+    <text x="0" y="360" class="content">• 精度と信頼性: 時に誤った回答（ハルシネーション）の可能性</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">2.1 生成AIの種類と使い方</text>
+    <text x="0" y="150" class="content">• マルチモーダル</text>
+    <text x="0" y="220" class="content">• 画像生成</text>
+    <text x="0" y="290" class="content">• 音楽生成</text>
+    <text x="0" y="360" class="content">• 動画生成</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">2.1.1 マルチモーダル</text>
+    <text x="0" y="150" class="content">• 概要: 複数のファイル形式を一度に処理可能</text>
+    <text x="0" y="220" class="content">• ツール: ChatGPT, Gemini, Claude, Microsoft 365 Copilot等</text>
+    <text x="0" y="290" class="content">• 使用例: 画像と文章を組み合わせた分析</text>
+    <text x="0" y="360" class="content">• 教育での活用: 多様な教材作成、総合的な学習支援</text>
+    <text x="0" y="430" class="content">• メリット: 複合的な情報処理が可能、柔軟な対応力</text>
+    <text x="0" y="500" class="content">• 注意点: 著作権への配慮、情報の正確性の確認</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">2.1.2 画像生成</text>
+    <text x="0" y="150" class="content">• 概要: テキストから画像を生成</text>
+    <text x="0" y="220" class="content">• ツール: DALL·E 3, Midjourney, Adobe Firefly等</text>
+    <text x="0" y="290" class="content">• 教育での活用: 視覚的教材作成、創造性育成</text>
+    <text x="0" y="360" class="content">• 注意点: 著作権問題、不適切な画像生成の回避</text>
+  </g>
+</svg>`,            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">2.1.3 音楽生成</text>
+    <text x="0" y="150" class="content">• 概要: テキストや設定から音楽を生成</text>
+    <text x="0" y="220" class="content">• ツール: Soundraw, Suno, Udio等</text>
+    <text x="0" y="290" class="content">• 教育での活用: 音楽教育、感性教育の支援</text>
+    <text x="0" y="360" class="content">• 可能性: オリジナル校歌作成、イベントBGM制作</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">2.1.4 動画生成</text>
+    <text x="0" y="150" class="content">• 概要: テキストや設定から動画を生成</text>
+    <text x="0" y="220" class="content">• ツール: Runway, Luma Dream Machine等</text>
+    <text x="0" y="290" class="content">• 教育での活用: 視覚的な学習教材、プレゼン作成</text>
+    <text x="0" y="360" class="content">• 注意点: 著作権、倫理的配慮、リアリティの程度</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">2.2 実習：実際に使ってみよう</text>
+    <text x="0" y="150" class="content">• テキスト生成実習</text>
+    <text x="0" y="220" class="content">• 画像生成実習</text>
+    <text x="0" y="290" class="content">• 実践的なタスクに挑戦</text>
+    <text x="0" y="360" class="content">• 結果の共有と討論</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">2.2.1 テキスト生成</text>
+    <text x="0" y="150" class="content">• 使用ツール: ChatGPT（スマホアプリ版）</text>
+    <text x="0" y="220" class="content">• 課題1: 任意のトピックについて質問</text>
+    <text x="0" y="290" class="content">• 課題2: 教材やテストの作成依頼</text>
+    <text x="0" y="360" class="content">• 注意点: 個人情報入力禁止、結果の検証重要</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+      .link { fill: blue; text-decoration: underline; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">2.2.2 画像生成</text>
+    <text x="0" y="90" class="content">• 前提知識：「類似性」と「依拠性」に注意</text>
+    <text x="0" y="130" class="content">• 概要:</text>
+    <text x="40" y="170" class="content">• 類似性･･･生成された画像が既存の著作物とどれくらい似ているか</text>
+    <text x="40" y="210" class="content">• 依拠性･･･生成された画像が既存の著作物を参考にしたり、それに基づいて作られたかどうか</text>
+    <text x="0" y="250" class="content">• 対応:</text>
+    <text x="40" y="290" class="content">① 「ピカチュウ」などと直接入力しない。そのまま使う× / 素材として使い、加工する⚪︎</text>
+    <text x="40" y="330" class="content">②  授業の範囲内で利⽤可（著作権法第35条）</text>
+    <text x="0" y="370" class="content">• 参考:</text>
+    <text x="40" y="380" class="content">
+      <tspan x="40" dy="1.2em">① 文化庁:</tspan>
+      <a xlink:href="https://www.bunka.go.jp/seisaku/chosakuken/pdf/93903601_01.pdf" target="_blank">
+        <tspan x="280" dy="0" class="link">https://www.bunka.go.jp/seisaku/chosakuken/pdf/93903601_01.pdf</tspan>
+      </a>
+    </text>
+    <text x="40" y="430" class="content">
+      <tspan x="40" dy="1.2em">② 文部科学省:</tspan>
+      <a xlink:href="https://www.mext.go.jp/content/20230710-mxt_shuukyo02-000030823_003.pdf" target="_blank">
+        <tspan x="310" dy="0" class="link">https://www.mext.go.jp/content/20230710-mxt_shuukyo02-000030823_003.pdf</tspan>
+      </a>
+    </text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+      .link { fill: blue; text-decoration: underline; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">2.2.2 画像生成</text>
+    <text x="0" y="100" class="content">• 使用ツール: Canva AI「マジック生成」、Microsoft Designer</text>
+    <text x="0" y="160" class="content">• 課題: 地域の特色を反映したキャラクター作成</text>
+    <text x="0" y="220" class="content">• 手順: プレゼン作成 → マジック生成 → 画像生成</text>
+    <text x="0" y="280" class="content">• 注意点: 著作権に配慮、既存キャラクターの模倣回避</text>
+    <text x="0" y="340" class="content">• 共有: できた作品はPadletで共有する</text>
+    <text x="0" y="400" class="content">
+      <a xlink:href="https://padlet.com/955767/padlet-l9liigbt81qdb4o1" target="_blank">
+        <tspan x="0" dy="1.2em" class="link">https://padlet.com/955767/padlet-l9liigbt81qdb4o1</tspan>
+      </a>
+    </text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">3.1 校務での活用方法</text>
+    <text x="0" y="150" class="content">• 教材作成・授業準備</text>
+    <text x="0" y="220" class="content">• 報告書・議事録作成</text>
+    <text x="0" y="290" class="content">• データ整理・分析</text>
+    <text x="0" y="360" class="content">• スケジュール管理</text>
+    <text x="0" y="430" class="content">• To-Doリスト最適化</text>
+    <text x="0" y="500" class="content">• プログラミング・関数支援</text>
+    <text x="0" y="600" class="content">
+      <tspan x="0" dy="1.2em">参考:</tspan>
+      <a xlink:href="https://newspicks.com/topics/ikigai-meets-ai/posts/105?fromNews=true" target="_blank">
+        <tspan x="80" dy="0" class="link">https://newspicks.com/topics/ikigai-meets-ai/posts/105?fromNews=true</tspan>
+      </a>
+    </text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .subtitle { font-size: 48px; font-weight: 700; fill: #5F6368; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">3.1.1 教材作成・授業準備</text>
+    <text x="0" y="100" class="subtitle">授業準備の手順:</text>
+    <text x="40" y="170" class="content">1. 情報入力（年齢、得意なこと、教科、目標）</text>
+    <text x="40" y="240" class="content">2. AIの出力した選択肢からアイデアを選択</text>
+    <text x="40" y="310" class="content">3. AIの出力した指導案にフィードバック</text>
+    <text x="40" y="380" class="content">4. 補助教材の作成（ワークシート、スライド）</text>
+    <text x="0" y="450" class="subtitle">テスト作成:</text>
+    <text x="40" y="520" class="content">• 対象・目的の明確化</text>
+    <text x="40" y="590" class="content">• 形式・難易度指定</text>
+    <text x="40" y="660" class="content">• 内容確認と修正</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .subtitle { font-size: 48px; font-weight: 700; fill: #5F6368; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">3.1.2 報告書・議事録作成</text>
+    <text x="0" y="100" class="subtitle">報告書作成:</text>
+    <text x="40" y="170" class="content">1. ChatGPTに音声入力</text>
+    <text x="40" y="240" class="content">2. AIの出力した報告書にフィードバック</text>
+    <text x="0" y="310" class="subtitle">議事録作成:</text>
+    <text x="40" y="380" class="content">1. CLOVA noteアプリで会議を録音</text>
+    <text x="40" y="450" class="content">2. 文字起こしデータをChatGPTに入力</text>
+    <text x="40" y="520" class="content">3. AIが生成した議事録を確認・編集</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .subtitle { font-size: 48px; font-weight: 700; fill: #5F6368; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">3.1.3 データ整理・分析</text>
+    <text x="0" y="100" class="subtitle">アンケート分析の手順:</text>
+    <text x="40" y="170" class="content">1. NotebookLLMにログイン</text>
+    <text x="40" y="240" class="content">2. GoogleFormの回答をcsv形式に変換</text>
+    <text x="40" y="310" class="content">3. NotebookLLMにデータをアップロード</text>
+    <text x="40" y="380" class="content">4. AIに指示して自動要約を確認</text>
+    <text x="0" y="450" class="subtitle">活用例:</text>
+    <text x="40" y="520" class="content">• 学校行事のフィードバック整理</text>
+    <text x="40" y="590" class="content">• 保護者アンケートの傾向把握</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">3.1.4 スケジュール管理</text>
+    <text x="0" y="150" class="content">• 最適スケジュール提案</text>
+    <text x="0" y="220" class="content">• 時間配分最適化</text>
+    <text x="0" y="290" class="content">• 定期タスク自動化</text>
+    <text x="0" y="360" class="content">• 優先順位付けサポート</text>
+    <text x="0" y="430" class="content">• 会議やイベントの日程調整支援</text>
+    <text x="0" y="500" class="content">• リマインダー機能の強化</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-     weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">3.1.5 To-Doリスト最適化</text>
+    <text x="0" y="150" class="content">• 優先順位付け</text>
+    <text x="0" y="220" class="content">• タスク分解・具体化</text>
+    <text x="0" y="290" class="content">• 効率的管理提案</text>
+    <text x="0" y="360" class="content">• 締め切り設定のサポート</text>
+    <text x="0" y="430" class="content">• タスク達成の進捗管理</text>
+    <text x="0" y="500" class="content">• 関連タスクのグループ化</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+      .link { fill: blue; text-decoration: underline; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">3.1.6 プログラミング・関数支援</text>
+    <text x="0" y="150" class="content">• エクセルの関数支援</text>
+    <text x="0" y="220" class="content">• プログラミング教育用コード生成</text>
+    <text x="0" y="290" class="content">• デバッグ支援</text>
+    <text x="0" y="360" class="content">• プログラミング学習リソースの提案</text>
+  </g>
+</svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      text { font-family: 'Noto Sans JP', sans-serif; }
+      .title { font-size: 64px; font-weight: 700; fill: #1A73E8; }
+      .content { font-size: 36px; font-weight: 400; fill: #3C4043; }
+      .background { fill: #F8F9FA; }
+      .link { fill: blue; text-decoration: underline; }
+    </style>
+  </defs>
+  
+  <rect width="100%" height="100%" class="background"/>
+  
+  <g transform="translate(160, 120)">
+    <text x="0" y="0" class="title">3.2 【グループワーク】校務での活用方法を考えよう</text>
+    <text x="0" y="150" class="content">1. 個人で考える（3分）</text>
+    <text x="0" y="220" class="content">2. グループでアイデアを共有（10分）</text>
+    <text x="0" y="290" class="content">3. グループで最良のアイデアを選択（3分）</text>
+    <text x="0" y="360" class="content">4. 全体で共有（各グループ2分）</text>
+    <text x="0" y="430" class="content">5. 質疑応答・ディスカッション（3分）</text>
+    <text x="0" y="500" class="content">6. まとめと今後の展望（3分）</text>
+    <text x="0" y="600" class="content">
+      <tspan x="0" dy="1.2em">Padletで共有:</tspan>
+      <a xlink:href="https://padlet.com/955767/padlet-q7ybqydmpx0uefs7" target="_blank">
+        <tspan x="240" dy="0" class="link">https://padlet.com/955767/padlet-q7ybqydmpx0uefs7</tspan>
+      </a>
+    </text>
+  </g>
+</svg>`
+        ];
+
+        let currentSlide = 0;
+        const slideContainer = document.getElementById('slideContainer');
+        const prevButton = document.getElementById('prevSlide');
+        const nextButton = document.getElementById('nextSlide');
+
+        function showSlide(index) {
+            slideContainer.innerHTML = slides[index];
+            currentSlide = index;
+            prevButton.disabled = currentSlide === 0;
+            nextButton.disabled = currentSlide === slides.length - 1;
+        }
+
+        prevButton.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                showSlide(currentSlide - 1);
+            }
+        });
+
+        nextButton.addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) {
+                showSlide(currentSlide + 1);
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevButton.click();
+            if (e.key === 'ArrowRight') nextButton.click();
+        });
+
+        // 初期スライドを表示
+        showSlide(0);
+    </script>
+</body>
+</html>
