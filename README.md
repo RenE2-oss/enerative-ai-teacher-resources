@@ -1,1 +1,1 @@
-# gnerative-ai-teacher-resources
+# generative-ai-teacher-resources
