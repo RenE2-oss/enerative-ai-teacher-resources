@@ -29,6 +29,7 @@
 ## 参照リンク
 - [文化庁のガイドライン](https://www.bunka.go.jp/seisaku/chosakuken/pdf/93903601_01.pdf)
 - [文部科学省のガイドライン](https://www.mext.go.jp/content/20230710-mxt_shuukyo02-000030823_003.pdf)
+- [生成AI最前線「IKIGAI lab.」記事　【驚愕】生成AIで教員の事務作業が激減、教育現場の未来とは？](https://newspicks.com/topics/ikigai-meets-ai/posts/105?fromNews=true)
 
 ## ライセンス
 このプロジェクトはMITライセンスのもとで公開されています。詳細は[LICENSE](LICENSE)ファイルを参照してください。
